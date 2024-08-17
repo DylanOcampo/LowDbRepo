@@ -3,36 +3,47 @@ import { getConnection } from "./database.js";
 const router = Router();
 
 const getTask = (req, res) => {
-  const taskFound = getConnection().data.users.find(
+  const userFound = getConnection().data.users.find(
     (t) => t._id === req.params._id
   );
 
-  if (!taskFound) res.sendStatus(404);
-  res.json(taskFound);
+  if (!userFound) res.sendStatus(404);
+  res.json(userFound);
 };
-router.get("/tasks/:_id", getTask);
+router.get("/user/:_id", getTask);
 
 const updateTask = async (req, res) => {
-  const { name, description } = req.body;
-
+  const { age, eyeColor, company, email, password, phone, address } = req.body;
+  console.log(req.body);
   try {
     const db = getConnection();
-    const taskFound = db.data.tasks.find((t) => t._id === req.params._id);
-    if (!taskFound) return res.sendStatus(404);
+    console.log(req.params._id);
+    const user = db.data.users.find((t) => t._id === req.params._id);
+    if (!user) return res.sendStatus(404);
+    if (user.password === req.params.password) {
+      user.age = age;
+      user.eyeColor = eyeColor;
+      user.company = company;
+      user.email = email;
+      user.phone = phone;
+      user.address = address;
+      user.password = password;
+      user.phone = phone;
 
-    taskFound.name = name;
-    taskFound.description = description;
+      db.data.users.map((t) => (t._id === req.params._id ? user : t));
 
-    db.data.tasks.map((t) => (t._id === req.params._id ? taskFound : t));
+      await db.write();
 
-    await db.write();
+      res.json(user);
+    } else {
+      res.json(null);
+    }
 
-    res.json(taskFound);
   } catch (error) {
     return res.status(500).send(error.message);
   }
 };
-router.put("/tasks/:_id", updateTask);
+router.put("/edit/:_id/:password", updateTask);
 
 const UserAuth = (req, res) => {
   try {
